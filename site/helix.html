@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Detailed DNA Helix</title>
+  <style>
+    body { margin: 0; overflow: hidden; }
+    canvas { display: block; }
+  </style>
+</head>
+<body>
+<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
+<script>
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
+  const renderer = new THREE.WebGLRenderer();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  document.body.appendChild(renderer.domElement);
+
+  // Materials for atoms
+  const phosphateMaterial = new THREE.MeshBasicMaterial({ color: 0xffd700 }); // Yellow
+  const sugarMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff }); // White
+  const base1Material = new THREE.MeshBasicMaterial({ color: 0x00ced1 }); // Cyan
+  const base2Material = new THREE.MeshBasicMaterial({ color: 0xdc143c }); // Crimson
+  const connectorMaterial = new THREE.LineBasicMaterial({ color: 0x00ff00 });
+
+  const basePairs = 40;
+  const helixRadius = 2;
+  const helixHeight = 0.6;
+  const twistAngle = 0.4;
+
+  for (let i = 0; i < basePairs; i++) {
+    const angle = i * twistAngle;
+    const y = i * helixHeight;
+
+    // Left strand atoms
+    const x1 = helixRadius * Math.cos(angle);
+    const z1 = helixRadius * Math.sin(angle);
+
+    const phosphate1 = new THREE.Mesh(new THREE.SphereGeometry(0.25), phosphateMaterial);
+    phosphate1.position.set(x1, y + 0.2, z1);
+    scene.add(phosphate1);
+
+    const sugar1 = new THREE.Mesh(new THREE.SphereGeometry(0.2), sugarMaterial);
+    sugar1.position.set(x1, y, z1);
+    scene.add(sugar1);
+
+    const base1 = new THREE.Mesh(new THREE.SphereGeometry(0.15), base1Material);
+    base1.position.set(x1 * 0.8, y - 0.2, z1 * 0.8);
+    scene.add(base1);
+
+    // Right strand atoms
+    const x2 = helixRadius * Math.cos(angle + Math.PI);
+    const z2 = helixRadius * Math.sin(angle + Math.PI);
+
+    const phosphate2 = new THREE.Mesh(new THREE.SphereGeometry(0.25), phosphateMaterial);
+    phosphate2.position.set(x2, y + 0.2, z2);
+    scene.add(phosphate2);
+
+    const sugar2 = new THREE.Mesh(new THREE.SphereGeometry(0.2), sugarMaterial);
+    sugar2.position.set(x2, y, z2);
+    scene.add(sugar2);
+
+    const base2 = new THREE.Mesh(new THREE.SphereGeometry(0.15), base2Material);
+    base2.position.set(x2 * 0.8, y - 0.2, z2 * 0.8);
+    scene.add(base2);
+
+    // Hydrogen bonds between bases
+    const geometry = new THREE.BufferGeometry().setFromPoints([
+      new THREE.Vector3(x1 * 0.8, y - 0.2, z1 * 0.8),
+      new THREE.Vector3(x2 * 0.8, y - 0.2, z2 * 0.8),
+    ]);
+    const bond = new THREE.Line(geometry, connectorMaterial);
+    scene.add(bond);
+  }
+
+  camera.position.z = 15;
+
+  function animate() {
+    requestAnimationFrame(animate);
+    scene.rotation.y += 0.02;  // 🔥 Faster rotation
+    renderer.render(scene, camera);
+  }
+  animate();
+</script>
+</body>
+</html>
