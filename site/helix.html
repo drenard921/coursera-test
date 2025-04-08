@@ -2,77 +2,45 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>DNA from CIF</title>
+  <title>DNA CIF Viewer</title>
+  <script src="https://unpkg.com/molstar@3.2.0/build/viewer/molstar.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/molstar@3.2.0/build/viewer/molstar.css" />
   <style>
-    body { margin: 0; overflow: hidden; }
-    canvas { display: block; }
+    body, html { margin: 0; height: 100%; overflow: hidden; }
+    #app { width: 100%; height: 100vh; }
+    #fileInput {
+      position: absolute;
+      top: 10px; left: 10px;
+      z-index: 10;
+      background: white;
+      padding: 6px;
+      border-radius: 4px;
+      box-shadow: 0 0 4px rgba(0,0,0,0.2);
+    }
   </style>
 </head>
 <body>
-<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/build/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.158.0/examples/js/controls/OrbitControls.js"></script>
-<script>
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(75, window.innerWidth/window.innerHeight, 0.1, 1000);
-  const renderer = new THREE.WebGLRenderer({antialias: true});
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  document.body.appendChild(renderer.domElement);
+  <input type="file" id="fileInput" accept=".cif" />
+  <div id="app"></div>
 
-  // Add user controls
-  const controls = new THREE.OrbitControls(camera, renderer.domElement);
+  <script>
+    const viewer = new molstar.Viewer('app', {
+      layoutIsExpanded: true,
+      layoutShowControls: true,
+      layoutShowRemoteState: false,
+      layoutShowSequence: true,
+      layoutShowLog: false,
+      layoutShowLeftPanel: true
+    });
 
-  // Element colors
-  const elementColors = {
-    H: 0xffffff,
-    C: 0xaaaaaa,
-    N: 0x0000ff,
-    O: 0xff0000,
-    P: 0xffa500,
-    S: 0xffff00,
-    default: 0x00ffcc
-  };
+    document.getElementById('fileInput').addEventListener('change', async (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
 
-  // CIF-based atomic coordinates
-  const atoms = [
-    {element: "O", x: 6.009, y: 7.501, z: -13.738},
-    {element: "C", x: 5.971, y: 8.717, z: -14.473},
-    {element: "C", x: 7.121, y: 9.623, z: -14.038},
-    {element: "O", x: 6.724, y: 10.960, z: -14.342},
-    {element: "C", x: 7.415, y: 9.614, z: -12.521},
-    // Add more atoms here or dynamically inject all from dataset...
-  ];
-
-  atoms.forEach(atom => {
-    const color = elementColors[atom.element] || elementColors.default;
-    const material = new THREE.MeshPhongMaterial({ color });
-    const sphere = new THREE.Mesh(new THREE.SphereGeometry(0.3, 32, 32), material);
-    sphere.position.set(atom.x, atom.y, atom.z);
-    scene.add(sphere);
-  });
-
-  // Lighting
-  const light1 = new THREE.PointLight(0xffffff, 1);
-  light1.position.set(10, 10, 10);
-  scene.add(light1);
-
-  const ambient = new THREE.AmbientLight(0x404040); // soft light
-  scene.add(ambient);
-
-  camera.position.set(0, 0, 30);
-  controls.update();
-
-  function animate() {
-    requestAnimationFrame(animate);
-    controls.update();
-    renderer.render(scene, camera);
-  }
-  animate();
-
-  window.addEventListener('resize', () => {
-    camera.aspect = window.innerWidth/window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-  });
-</script>
+      const data = await file.text();
+      viewer.clear();
+      viewer.loadStructureFromData(data, 'mmcif');
+    });
+  </script>
 </body>
 </html>
